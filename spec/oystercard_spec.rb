@@ -73,7 +73,7 @@ context 'touched in and out' do
     expect(oystercard.exit_station).to eq(exit_station)
   end
 
-  it 'forgets entry station when touch_out' do
+  it 'forgets entry station when touch _out' do
     expect(oystercard.entry_station).to eq nil
   end
 
