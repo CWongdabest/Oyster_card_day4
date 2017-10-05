@@ -22,7 +22,7 @@ describe Oystercard do
   it{ is_expected.to respond_to(:touch_in).with(1).argument }
 
   it 'should have an empty list of journey by default' do
-    expect(oystercard.journey).to eq Oystercard::EMPTY_JOURNEY
+    expect(oystercard.journey).to be_empty
   end
 
 context '£5 on oystercard' do
@@ -37,34 +37,40 @@ context '£5 on oystercard' do
   it 'tells if a passenger is in journey or not' do
     expect(oystercard.in_journey?).to eq(true).or(eq(false))
   end
+end
 
-  it 'tracks if a passenger is in journey' do
+context 'touched in only' do
+  before(:each)do
+    oystercard.top_up(5)
     oystercard.touch_in(entry_station)
+ end
+  it 'tracks if a passenger is in journey' do
     expect(oystercard.in_journey?).to be true
-    oystercard.touch_out(exit_station)
-    expect(oystercard.in_journey?).to be false
-  end
-
-  it 'should deduct from balance when touch_out' do
-    expect{oystercard.touch_out(exit_station) }.to change{subject.balance}.by(-(Oystercard::MINIMUM_FARE))
   end
 
   it 'remembers entry station when touch_in' do
-    oystercard.touch_in(entry_station)
     expect(oystercard.entry_station).to eq(entry_station)
   end
 
-  it 'remembers exit station when touch_out' do
-    oystercard.touch_out(exit_station)
-    expect(oystercard.exit_station).to eq(exit_station)
+  it 'should deduct from balance when touch_out' do
+    expect{oystercard.touch_out(exit_station)}.to change{oystercard.balance}.by(-(Oystercard::MINIMUM_FARE))
   end
 end
 
 context 'touched in and out' do
+  let(:this_journey){{entry: entry_station, exit: exit_station}}
   before(:each)do
    oystercard.top_up(5)
    oystercard.touch_in(entry_station)
    oystercard.touch_out(exit_station)
+  end
+
+  it 'tracks if a passenger is in journey' do
+    expect(oystercard.in_journey?).to be false
+  end
+
+  it 'remembers exit station when touch_out' do
+    expect(oystercard.exit_station).to eq(exit_station)
   end
 
   it 'forgets entry station when touch_out' do
@@ -73,10 +79,10 @@ context 'touched in and out' do
 
   it 'records one journey when user touch_in, followed by touch_out' do
     expect(oystercard.journey.count).to eq(1)
-end
+  end
 
-  it 'records both entry and exit stations in journey array' do
-    expect(oystercard.journey).to eq([{entry: entry_station, exit: exit_station}])
+  it 'record a journey' do
+    expect(oystercard.journey).to include this_journey
   end
 end
 
